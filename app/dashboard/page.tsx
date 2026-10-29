@@ -2,12 +2,14 @@ import { supabase } from "../../lib/supabase";
 import AdminShell from "../../components/AdminShell";
 import DashboardBills from "./DashboardBills";
 import { currentBillingMonth, outstandingBalance } from "../../lib/billing";
+import { unstable_noStore as noStore } from "next/cache";
 
 export const dynamic = "force-dynamic";
 type Client = { id: string; name: string; phone: string | null; plan: string; monthly_fee: number; status: "active" | "inactive" | "overdue"; due_date: string | null };
 const peso = (value: number) => new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 }).format(value);
 
 export default async function DashboardPage() {
+  noStore();
   const billingMonth = currentBillingMonth();
   const [{ data, count: clientCount, error }, { data: payments, error: paymentsError }] = await Promise.all([
     supabase.from("clients").select("id,name,phone,plan,monthly_fee,status,due_date", { count: "exact" }).order("name"),
