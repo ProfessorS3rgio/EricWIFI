@@ -22,6 +22,9 @@ create table if not exists public.payments (
   notes text
 );
 
+alter table public.payments add column if not exists voided_at timestamptz;
+alter table public.payments add column if not exists voided_reason text;
+
 create index if not exists payments_client_month_idx
   on public.payments (client_id, billing_month);
 

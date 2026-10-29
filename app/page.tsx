@@ -24,7 +24,7 @@ export default async function PublicHome() {
   const billingMonth = currentBillingMonth();
   const [{ data: clients, error: clientsError }, { data: payments, error: paymentsError }] = await Promise.all([
     supabase.from("clients").select("id,name,plan,monthly_fee,due_date,status").order("name"),
-    supabase.from("payments").select("client_id,amount").eq("billing_month", billingMonth)
+    supabase.from("payments").select("client_id,amount").eq("billing_month", billingMonth).is("voided_at", null)
   ]);
 
   if (clientsError || paymentsError) {

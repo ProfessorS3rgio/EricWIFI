@@ -8,7 +8,7 @@ export default async function OutstandingPage() {
   const month = new Date().toISOString().slice(0, 7) + "-01";
   const [{ data: clients }, { data: payments }] = await Promise.all([
     supabase.from("clients").select("id,name,phone,plan,monthly_fee,due_date,status").eq("status", "active").order("name"),
-    supabase.from("payments").select("client_id,amount").eq("billing_month", month)
+    supabase.from("payments").select("client_id,amount").eq("billing_month", month).is("voided_at", null)
   ]);
   const paidByClient = new Map<string, number>();
   (payments ?? []).forEach((payment) => paidByClient.set(payment.client_id, (paidByClient.get(payment.client_id) ?? 0) + Number(payment.amount)));

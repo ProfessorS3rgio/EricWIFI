@@ -12,7 +12,7 @@ export default async function CustomerPage({ searchParams }: { searchParams: { p
   let paid = 0;
   if (client) {
     const month = currentBillingMonth();
-    const { data: payments } = await supabase.from("payments").select("amount").eq("client_id", client.id).eq("billing_month", month);
+    const { data: payments } = await supabase.from("payments").select("amount").eq("client_id", client.id).eq("billing_month", month).is("voided_at", null);
     paid = paymentTotal(payments);
   }
   const balance = client ? outstandingBalance(client.monthly_fee, paid) : 0;

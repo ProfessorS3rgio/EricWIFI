@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   const billingMonth = currentBillingMonth();
   const [{ data, count: clientCount, error }, { data: payments, error: paymentsError }] = await Promise.all([
     supabase.from("clients").select("id,name,phone,plan,monthly_fee,status,due_date", { count: "exact" }).order("name"),
-    supabase.from("payments").select("client_id,amount").eq("billing_month", billingMonth)
+    supabase.from("payments").select("client_id,amount").eq("billing_month", billingMonth).is("voided_at", null)
   ]);
   if (error || paymentsError) return <AdminShell><main className="content-shell"><section className="error-card"><h2>Unable to load dashboard</h2><p>{error?.message || paymentsError?.message}</p></section></main></AdminShell>;
   const clients = (data ?? []) as Client[];
