@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isValidSession } from "./lib/session";
 
-const publicPaths = ["/", "/login", "/customer", "/api/login", "/_next", "/favicon.ico"];
+const publicPrefixes = ["/login", "/customer", "/api/login", "/_next", "/favicon.ico"];
 
-export function middleware(request: NextRequest) {
-  const isPublic = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+export async function middleware(request: NextRequest) {
+  const isPublic = request.nextUrl.pathname === "/" || publicPrefixes.some((path) => request.nextUrl.pathname.startsWith(path));
   if (isPublic) return NextResponse.next();
 
-  if (request.nextUrl.pathname.startsWith("/api/")) {
-    return NextResponse.next();
-  }
-
-  if (request.cookies.get("ericwifi_session")?.value !== "authenticated") {
+  if (!(await isValidSession(request.cookies.get("ericwifi_session")?.value))) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

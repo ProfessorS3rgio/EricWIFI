@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createSession } from "../../../lib/session";
 
 export async function POST(request: Request) {
   const { pin } = (await request.json()) as { pin?: string };
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("ericwifi_session", "authenticated", {
+  response.cookies.set("ericwifi_session", await createSession(), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
