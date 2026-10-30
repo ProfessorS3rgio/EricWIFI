@@ -9,7 +9,8 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "test:ui": "playwright test",
-    "format": "prettier --write app components lib tests middleware.ts playwright.config.ts next.config.mjs package.json README.md"
+    "format": "prettier --write app components lib tests middleware.ts playwright.config.ts next.config.mjs package.json README.md",
+    "db:check": "tsx scripts/check-database.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

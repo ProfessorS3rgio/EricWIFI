@@ -51,3 +51,11 @@ Add the four setup environment variables in your hosting provider and redeploy. 
 For local development, copy `.env.example` to `.env.local`, fill in all four values, and restart `npm run dev`. Set `ADMIN_MPIN` to your own four-digit PIN. Do not commit `.env.local`.
 
 For Vercel, set `ADMIN_MPIN` under Project Settings → Environment Variables for the environment you are using (Production and/or Preview), then redeploy. Also configure `SESSION_SECRET` (at least 32 random characters), `NEXT_PUBLIC_SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY`, and run the complete updated SQL migration. Values in `.env.example` do not configure a deployed server.
+
+## Bills unavailable / login migration errors
+
+Run `npm run db:check` to check the configuration and required tables without printing credentials or customer records.
+
+`SUPABASE_SERVICE_ROLE_KEY` must be a backend secret key (`sb_secret_...`) or a legacy `service_role` key. A publishable key (`sb_publishable_...`) or legacy `anon` key cannot run the protected admin functions. Get the server key from your Supabase project's Settings → API Keys, put it in `.env.local`, and restart Next.js.
+
+If `bills` or `admin_login_guard` is missing, run the entire `supabase/schema.sql` in Supabase SQL Editor for the same project. This installs `check_login_attempt`, `ensure_current_bills`, and `record_payment` as well as the new tables. Then rerun `npm run db:check` and restart the app.

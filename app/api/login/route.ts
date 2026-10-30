@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { createSession, sessionSecret } from "../../../lib/session";
 import { database } from "../../../lib/supabase";
+import { DatabaseConfigError } from "../../../lib/database-config";
 function validOrigin(request: Request) {
   const origin = request.headers.get("origin");
   return !origin || origin === new URL(request.url).origin;
@@ -34,7 +35,12 @@ export async function POST(request: Request) {
     );
     if (error)
       return NextResponse.json(
-        { error: "Sign-in is unavailable. Check the database migration." },
+        {
+          error:
+            error.code === "PGRST202"
+              ? "Database setup is incomplete: check_login_attempt is missing. Run the complete supabase/schema.sql in Supabase SQL Editor, then try again."
+              : "Supabase rejected the sign-in check. Verify your server secret key and run npm run db:check for details.",
+        },
         { status: 503 },
       );
     if (!permitted)
@@ -54,11 +60,13 @@ export async function POST(request: Request) {
       path: "/",
     });
     return response;
-  } catch {
+  } catch (error) {
     return NextResponse.json(
       {
         error:
-          "Sign-in is unavailable. Check the server configuration and try again.",
+          error instanceof DatabaseConfigError
+            ? error.message
+            : "Sign-in is unavailable. Check the server configuration and try again.",
       },
       { status: 503 },
     );

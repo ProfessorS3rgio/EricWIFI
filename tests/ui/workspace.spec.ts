@@ -27,6 +27,12 @@ test("public pages, auth boundary, collection workflow, and responsive layout", 
     path: "test-results/previews/home-desktop.png",
     fullPage: true,
   });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "test-results/previews/home-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   expect((await request.post("/api/payments", { data: {} })).status()).toBe(
     401,
   );

@@ -14,7 +14,7 @@ export default async function Home() {
     unavailable = true;
   }
   return (
-    <main className="public-home">
+    <main className="public-home client-bill-page">
       <div className="public-shell">
         <header className="public-header">
           <Link className="public-brand" href="/">
