@@ -1,24 +1,36 @@
 import { NextResponse } from "next/server";
-import { supabase } from "../../../../../lib/supabase";
-
-export async function POST(request: Request, { params }: { params: { id: string } }) {
-  let reason = "Voided by admin";
+import { database } from "../../../../../lib/supabase";
+import { mutationGuard, invalid } from "../../../../../lib/http";
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const denied = await mutationGuard(request);
+  if (denied) return denied;
   try {
-    const body = await request.json() as { reason?: string };
-    if (body.reason?.trim()) reason = body.reason.trim().slice(0, 200);
+    const { id } = await params;
+    const body = await request.json();
+    const reason =
+      typeof body.reason === "string" ? body.reason.trim().slice(0, 200) : "";
+    if (!reason)
+      return invalid("Please provide a reason for voiding this payment.");
+    const { data, error } = await database()
+      .from("payments")
+      .update({ voided_at: new Date().toISOString(), voided_reason: reason })
+      .eq("id", id)
+      .is("voided_at", null)
+      .select("id")
+      .maybeSingle();
+    if (error) return invalid("Could not void payment.");
+    if (!data)
+      return NextResponse.json(
+        { error: "Payment not found or already voided." },
+        { status: 409 },
+      );
+    return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    return invalid(
+      "Could not void payment. Check your connection and try again.",
+    );
   }
-
-  const { data, error } = await supabase
-    .from("payments")
-    .update({ voided_at: new Date().toISOString(), voided_reason: reason })
-    .eq("id", params.id)
-    .is("voided_at", null)
-    .select("id")
-    .maybeSingle();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: "Payment was not found or was already voided." }, { status: 409 });
-  return NextResponse.json({ ok: true });
 }

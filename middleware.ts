@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidSession } from "./lib/session";
-
-const publicPrefixes = ["/login", "/customer", "/api/login", "/_next", "/favicon.ico"];
-
 export async function middleware(request: NextRequest) {
-  const isPublic = request.nextUrl.pathname === "/" || publicPrefixes.some((path) => request.nextUrl.pathname.startsWith(path));
-  if (isPublic) return NextResponse.next();
-
+  const path = request.nextUrl.pathname;
+  const publicPage =
+    ["/", "/login", "/customer", "/api/login", "/favicon.ico"].includes(path) ||
+    path.startsWith("/_next/");
+  if (publicPage) return NextResponse.next();
   if (!(await isValidSession(request.cookies.get("ericwifi_session")?.value))) {
+    if (path.startsWith("/api/"))
+      return NextResponse.json(
+        { error: "Please sign in again." },
+        { status: 401 },
+      );
     return NextResponse.redirect(new URL("/login", request.url));
   }
-
   return NextResponse.next();
 }
-
 export const config = {
-  matcher: ["/((?!.*\\.).*)"]
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
