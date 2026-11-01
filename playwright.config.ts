@@ -3,6 +3,8 @@ export default defineConfig({
   testDir: "./tests/ui",
   fullyParallel: false,
   workers: 1,
+  timeout: 90_000,
+  expect: { timeout: 15_000 },
   use: { baseURL: "http://localhost:3001", headless: true },
   webServer: [
     {

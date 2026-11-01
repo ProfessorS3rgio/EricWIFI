@@ -52,6 +52,18 @@ const payments = [
     clients: { name: "Maria Santos" },
   },
 ];
+payments.push({
+  id: "55555555-5555-4555-8555-555555555555",
+  client_id: clientId,
+  billing_month: "2025-12-01",
+  amount: 900,
+  paid_at: "2025-12-31T15:59:00.000Z",
+  method: "cash",
+  reference: null,
+  voided_at: null,
+  voided_reason: null,
+  clients: { name: "Maria Santos" },
+});
 http
   .createServer(async (req, res) => {
     const url = new URL(req.url, "http://localhost");
@@ -70,7 +82,12 @@ http
       const old = payments.find((p) => p.request_id === body.p_request_id);
       if (old) return reply(old.id);
       const paid = payments
-        .filter((p) => !p.voided_at)
+        .filter(
+          (p) =>
+            !p.voided_at &&
+            p.billing_month === cycle &&
+            p.client_id === clientId,
+        )
         .reduce((s, p) => s + p.amount, 0);
       if (body.p_amount > bills[0].amount - paid)
         return reply(
@@ -109,13 +126,16 @@ http
     let rows = source.filter((row) =>
       [...url.searchParams].every(([key, value]) => {
         if (value.startsWith("eq.")) return String(row[key]) === value.slice(3);
+        if (value.startsWith("gte.")) return String(row[key]) >= value.slice(4);
+        if (value.startsWith("lt.")) return String(row[key]) < value.slice(3);
         if (value === "is.null") return row[key] == null;
         return true;
       }),
     );
     if (req.method === "PATCH") {
       rows.forEach((p) => Object.assign(p, body));
-      return reply(rows);
+      const single = (req.headers.accept ?? "").includes("vnd.pgrst.object");
+      return reply(single ? (rows[0] ?? null) : rows);
     }
     if (req.method === "POST" && table === "clients") {
       const c = {

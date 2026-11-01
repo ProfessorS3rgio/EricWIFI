@@ -34,6 +34,29 @@ export async function getClients() {
   );
   return (data ?? []) as Client[];
 }
+
+export async function getAnnualCollections(year: number) {
+  await requireAdmin();
+  const from = new Date(Date.UTC(year, 0, 1, -8)).toISOString();
+  const until = new Date(Date.UTC(year + 1, 0, 1, -8)).toISOString();
+  const payments = await readAll(
+    database()
+      .from("payments")
+      .select("id,amount")
+      .gte("paid_at", from)
+      .lt("paid_at", until)
+      .is("voided_at", null)
+      .order("id"),
+  );
+  return {
+    total:
+      Math.round(
+        payments.reduce((sum, payment) => sum + Number(payment.amount), 0) *
+          100,
+      ) / 100,
+    count: payments.length,
+  };
+}
 export async function getBills(
   month: string | null = currentBillingMonth(),
 ): Promise<Bill[]> {

@@ -43,6 +43,9 @@ test("public pages, auth boundary, collection workflow, and responsive layout", 
   await expect(
     page.getByRole("heading", { name: /A clear view/ }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: /Collected in \d{4}/ }),
+  ).toContainText("₱200.00");
   await expect(page.getByText("Maria Santos")).toBeVisible();
   expect(
     (
@@ -83,6 +86,17 @@ test("public pages, auth boundary, collection workflow, and responsive layout", 
     .click();
   await expect(
     page.getByRole("heading", { name: "Monthly bills" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Edit client" }).click();
+  await page.getByLabel("Full name").fill("Maria Santos Updated");
+  await page.getByLabel("Internet plan").fill("Home 100 Mbps");
+  await page.getByLabel("Monthly fee").fill("999.50");
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(
+    page.getByRole("heading", { name: /Maria Santos Updated/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("row").filter({ hasText: "₱799.25" }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Collect", exact: true }).click();
   await expect(

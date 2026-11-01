@@ -58,7 +58,12 @@ export default async function ClientPage({
             {client.plan} · {peso(Number(client.monthly_fee))} / month
           </p>
         </div>
-        <span className={`badge ${client.status}`}>{client.status}</span>
+        <div className="profile-actions">
+          <span className={`badge ${client.status}`}>{client.status}</span>
+          <Link className="button" href={`/clients/${client.id}/edit`}>
+            Edit client
+          </Link>
+        </div>
       </header>
       <div className="profile-grid">
         <section className="panel profile-card">

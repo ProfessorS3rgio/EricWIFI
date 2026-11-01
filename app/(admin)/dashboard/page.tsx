@@ -1,11 +1,16 @@
 import Link from "next/link";
-import { getBills, getClients } from "../../../lib/data";
+import { getAnnualCollections, getBills, getClients } from "../../../lib/data";
 import { dateLabel, localDate, peso } from "../../../lib/billing";
 import Icon from "../../../components/Icon";
 import DashboardBills from "./DashboardBills";
 
 export default async function DashboardPage() {
-  const [bills, clients] = await Promise.all([getBills(), getClients()]);
+  const year = Number(localDate().slice(0, 4));
+  const [bills, clients, annual] = await Promise.all([
+    getBills(),
+    getClients(),
+    getAnnualCollections(year),
+  ]);
   const expected = bills.reduce((sum, bill) => sum + bill.amount, 0);
   const collected = bills.reduce((sum, bill) => sum + bill.paid, 0);
   const outstanding = bills.reduce((sum, bill) => sum + bill.balance, 0);
@@ -15,7 +20,7 @@ export default async function DashboardPage() {
     ? Math.min(100, Math.round((collected / expected) * 100))
     : 0;
   return (
-    <main className="content-shell">
+    <main className="content-shell dashboard-page">
       <header className="page-heading">
         <div>
           <p className="eyebrow">
@@ -106,6 +111,23 @@ export default async function DashboardPage() {
               <span>{peso(collected)} collected</span>
               <Icon name="check" size={16} />
             </div>
+          </section>
+          <section
+            className="panel annual-card"
+            aria-label={`Collected in ${year}`}
+          >
+            <div className="annual-card-heading">
+              <span className="stat-icon blue">
+                <Icon name="payments" />
+              </span>
+              <span>{year} COLLECTIONS</span>
+            </div>
+            <h2>Collected this year</h2>
+            <strong>{peso(annual.total)}</strong>
+            <p>
+              {annual.count} valid {annual.count === 1 ? "payment" : "payments"}{" "}
+              received · Jan–Dec {year}
+            </p>
           </section>
           <section className="panel attention-panel">
             <div className="panel-heading">
